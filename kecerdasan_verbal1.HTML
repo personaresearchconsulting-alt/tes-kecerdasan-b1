@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tes Verbal - Persona Research And Consulting</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --primary: #1a4a7a; --bg: #f0f2f5; --accent: #1e4b82; }
+        body { 
+            font-family: 'Arial', sans-serif; margin: 0; background: var(--bg); color: #333; 
+            -webkit-user-select: none; user-select: none;
+        }
+        @media print { body { display:none !important; } }
+        
+        .login-container { max-width: 450px; margin: 60px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        .logo-pc { background: #000; color: white; width: 70px; height: 70px; line-height: 70px; border-radius: 15px; margin: 0 auto 20px; font-weight: bold; font-size: 28px; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        .btn-main { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 18px; }
+        
+        #expiry-msg { color: #d9534f; font-weight: bold; margin-bottom: 15px; display: none; padding: 15px; border: 1px solid #d9534f; border-radius: 10px; background: #fff5f5; }
+
+        .wrapper { display: none; max-width: 1200px; margin: 20px auto; padding: 20px; display: flex; gap: 25px; }
+        .content-area { flex: 3; background: white; padding: 40px; border-radius: 15px; min-height: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .sidebar-right { flex: 1; background: white; padding: 25px; border-radius: 15px; height: fit-content; position: sticky; top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+        .q-text { font-size: 22px; font-weight: bold; margin-bottom: 25px; color: #111; }
+        .opt-box { padding: 15px 20px; border: 2px solid #eee; border-radius: 12px; cursor: pointer; margin-bottom: 12px; font-size: 18px; display: flex; align-items: center; }
+        .opt-box.selected { background: var(--primary); color: white; border-color: var(--primary); }
+        .prefix { font-weight: bold; margin-right: 15px; width: 25px; }
+
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        .nav-item { padding: 10px; border: 1px solid #ddd; text-align: center; cursor: pointer; border-radius: 6px; font-weight: bold; }
+        .nav-item.filled { background: var(--accent); color: white; }
+        .nav-item.active { border: 2px solid #ff9800; background: #fff3e0; }
+
+        .teach-box { background: #fffdf0; border-left: 8px solid #f1c40f; padding: 25px; margin-bottom: 25px; border-radius: 10px; page-break-inside: avoid; }
+    </style>
+</head>
+<body oncontextmenu="return false;" onkeydown="return disableSecurity(event);">
+
+<div id="page-login" class="login-container">
+    <div class="logo-pc">PRC</div>
+    <h1>TES VERBAL</h1>
+    <div id="expiry-msg">AKSES TERKUNCI: MASA BERLAKU HABIS (1 JULI 2026).</div>
+    <div id="login-fields">
+        <input type="text" id="inName" placeholder="NAMA LENGKAP">
+        <input type="password" id="inPass" placeholder="PASSWORD">
+        <button id="btn-start" class="btn-main" onclick="mulaiTes()">MASUK SESI</button>
+    </div>
+</div>
+
+<div id="page-quiz" style="display:none;">
+    <div class="wrapper" id="quiz-wrap" style="display:flex;">
+        <div class="content-area">
+            <div id="main-q" class="q-text"></div>
+            <div id="main-opts"></div>
+            <div style="margin-top: 40px; display: flex; justify-content: space-between;">
+                <button class="btn-main" style="width: 140px; background: #666;" onclick="arah(-1)">Kembali</button>
+                <button class="btn-main" style="width: 140px;" id="btn-next" onclick="arah(1)">Lanjut</button>
+            </div>
+        </div>
+        <div class="sidebar-right">
+            <div id="timer" style="text-align: center; font-size: 26px; font-weight: bold; color: #d9534f; margin-bottom: 20px;">30:00</div>
+            <div class="nav-grid" id="nav-nums"></div>
+        </div>
+    </div>
+</div>
+
+<div id="page-result" style="display:none; max-width: 900px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px;">
+    <div id="pdf-export-area">
+        <h2 style="text-align:center; color:#1a4a7a; border-bottom:3px solid #1a4a7a; padding-bottom:10px;">HASIL TES KECERDASAN VERBAL</h2>
+        <div id="res-info" style="margin:20px 0; line-height:1.8;"></div>
+        <div id="score-val" style="text-align:center; font-size: 70px; font-weight: bold; color: #1a4a7a; margin-bottom: 30px;">0</div>
+        <h3 style="background: #eee; padding: 10px;">PEMBAHASAN DETAIL</h3>
+        <div id="res-list"></div>
+    </div>
+    <button class="btn-main" onclick="downloadPDF()" style="background:#27ae60; margin-top: 20px;">SIMPAN HASIL (PDF)</button>
+</div>
+
+<script>
+    let idx = 0; let userAns = {}; let bankAcak = [];
+    
+    const bankAsli = [
+        { q: "BONAFIDE =", o: ["Surat berharga", "Dapat dipercaya", "Catatan hukum", "Keuntungan besar", "Saksi kunci"], a: 1, h: "Bonafide berarti dapat dipercaya atau asli." },
+        { q: "ESKAPISME =", o: ["Tindakan kriminal", "Cara pandang", "Kehendak bebas", "Keinginan menghindar", "Proses penguapan"], a: 3, h: "Eskapisme adalah keinginan menghindar dari kenyataan." },
+        { q: "KLEPTOFOBIA ><", o: ["Takut pencuri", "Gila belanja", "Suka mencuri", "Takut ketinggian", "Senang menolong"], a: 2, h: "Lawan dari takut pencurian adalah suka mencuri." },
+        { q: "SKEPTIS ><", o: ["Ragu", "Yakin", "Curiga", "Apatis", "Teliti"], a: 1, h: "Lawan dari ragu adalah yakin." },
+        { q: "TELINGA : ANTING = ... : ...", o: ["Leher : Kalung", "Tangan : Jam", "Kaki : Sepatu", "Kepala : Rambut", "Mata : Lensa"], a: 0, h: "Anting di telinga, kalung di leher." },
+        { q: "REKALSITRAN =", o: ["Penurut", "Membangkang", "Sabar", "Cerdas", "Lalai"], a: 1, h: "Rekalsitran berarti membangkang." },
+        { q: "ADAGIO : ... = ... : CEPAT", o: ["Lambat - Allegro", "Musik - Tempo", "Suara - Ritme", "Biola - Piano", "Lagu - Melodi"], a: 0, h: "Adagio = Lambat, Allegro = Cepat." },
+        { q: "Semua singa pemakan daging. Sebagian pemakan daging adalah hewan buas. Kesimpulan?", o: ["Semua singa hewan buas", "Sebagian singa hewan buas", "Ada pemakan daging yang bukan singa", "Hewan buas pasti singa", "Singa bukan hewan buas"], a: 2, h: "Ada pemakan daging yang bukan singa." },
+        { q: "Manakah yang tidak termasuk kelompoknya?", o: ["Prolog", "Epilog", "Monolog", "Dialog", "Intermezzo"], a: 4, h: "Intermezzo adalah selingan pertunjukan." },
+        { q: "INSOMNIA : TIDUR = ... : ...", o: ["Anemia : Darah", "Amensia : Ingatan", "Lapar : Makan", "Haus : Air", "Pusing : Obat"], a: 1, h: "Gangguan tidur = Insomnia, gangguan ingatan = Amnesia." },
+        { q: "KONTRAKTOR : BETON = ... : ...", o: ["Guru : Murid", "Tukang : Kayu", "Penjahit : Benang", "Supir : Ban", "Dokter : Pasien"], a: 2, h: "Bahan utama kontraktor beton, penjahit benang." },
+        { q: "DEGRADASI ><", o: ["Erosi", "Promosi", "Reduksi", "Inflasi", "Kemunduran"], a: 1, h: "Lawan degradasi adalah promosi." },
+        { q: "VIRTUAL =", o: ["Nyata", "Maya", "Asli", "Padat", "Indah"], a: 1, h: "Virtual = Maya." },
+        { q: "Pedagogi adalah ilmu tentang...", o: ["Hukum", "Pendidikan", "Tanaman", "Bumi", "Cuaca"], a: 1, h: "Pedagogi = Ilmu Pendidikan." },
+        { q: "KAKA TUA : MERPATI = ... : ...", o: ["Hiu : Paus", "Gajah : Semut", "Singa : Naga", "Jerapah : Gajah", "Elang : Kupu"], a: 3, h: "Kaka Tua & Merpati (Burung), Jerapah & Gajah (Mamalia)." },
+        { q: "NOMADIK : MENETAP = ... : ...", o: ["Cair : Beku", "Pindah : Diam", "Gersang : Subur", "Lapar : Kenyang", "Teratur : Kacau"], a: 1, h: "Nomadik (Pindah) lawan kata Menetap (Diam)." },
+        { q: "EKSPLISIT ><", o: ["Jelas", "Gamblang", "Tersirat", "Terbuka", "Luas"], a: 2, h: "Lawan eksplisit adalah tersirat." },
+        { q: "PRETENSI =", o: ["Tujuan", "Pura-pura", "Kemampuan", "Harapan", "Masalah"], a: 1, h: "Pretensi = Pura-pura." },
+        { q: "KONKRET ><", o: ["Nyata", "Padat", "Abstrak", "Asli", "Kaku"], a: 2, h: "Lawan konkret adalah abstrak." },
+        { q: "MATAHARI : TERIK = ... : ...", o: ["Bulan : Malam", "Lampu : Silau", "Api : Panas", "Es : Dingin", "Angin : Kencang"], a: 3, h: "Sifat mutlak: Matahari terik, Es dingin." },
+        { q: "PROMINEN =", o: ["Biasa", "Kecil", "Terkenal", "Rahasia", "Mewah"], a: 2, h: "Prominen = Terkenal/Menonjol." },
+        { q: "INSINUASI =", o: ["Tuduhan", "Sindiran", "Sanjungan", "Ajakan", "Hinaan"], a: 1, h: "Insinuasi = Sindiran." },
+        { q: "ABOLISI ><", o: ["Grasi", "Amnesti", "Rehabilitasi", "Pemberatan", "Pengurangan"], a: 3, h: "Lawan abolisi adalah pemberatan." },
+        { q: "EVAPORASI : AIR = ... : ...", o: ["Pembekuan : Es", "Pencairan : Salju", "Oksidasi : Karat", "Kondensasi : Uap", "Pembakaran : Api"], a: 3, h: "Evaporasi (Air), Kondensasi (Uap)." },
+        { q: "SEKULER ><", o: ["Duniawi", "Tradisional", "Keagamaan", "Modern", "Kuno"], a: 2, h: "Lawan sekuler adalah keagamaan." },
+        { q: "ITERASI =", o: ["Hubungan", "Pengulangan", "Tekanan", "Pencapaian", "Interaksi"], a: 1, h: "Iterasi = Pengulangan." },
+        { q: "Semua atlet sehat. Susi tidak sehat.", o: ["Susi atlet", "Susi bukan atlet", "Susi suka olahraga", "Atlet harus sakit", "Susi perokok"], a: 1, h: "Jika semua atlet sehat dan Susi tidak, maka Susi bukan atlet." },
+        { q: "TANGAN : JARI = ... : ...", o: ["Kepala : Rambut", "Kaki : Jempol", "Pohon : Ranting", "Rumah : Atap", "Buku : Teks"], a: 2, h: "Jari bagian dari tangan, ranting bagian dari pohon." },
+        { q: "HETEROGEN ><", o: ["Beragam", "Bervariasi", "Homogen", "Unik", "Campuran"], a: 2, h: "Lawan heterogen adalah homogen." },
+        { q: "FILATELI : PERANGKO = ... : ...", o: ["Arkeologi : Candi", "Numismatik : Koin", "Astronomi : Bintang", "Biologi : Sel", "Geologi : Batu"], a: 1, h: "Filateli (Perangko), Numismatik (Koin)." },
+        { q: "AMBIGU =", o: ["Jelas", "Tegas", "Bermakna ganda", "Salah arti", "Lupa"], a: 2, h: "Ambigu = Bermakna ganda." },
+        { q: "DENDROLOGI : POHON = ... : ...", o: ["Ikhtiologi : Ikan", "Entomologi : Hewan", "Sosiologi : Desa", "Patologi : Hutan", "Biologi : Alat"], a: 0, h: "Dendrologi (Pohon), Ikhtiologi (Ikan)." },
+        { q: "IMPAS ><", o: ["Laba", "Rugi", "Sama", "Untung", "Saldo"], a: 1, h: "Lawan impas adalah rugi." },
+        { q: "OVAL : ELIPS = ... : ...", o: ["Bulat : Bola", "Persegi : Kotak", "Segitiga : Prisma", "Lingkaran : Bundar", "Garis : Titik"], a: 3, h: "Oval-Elips (Sinonim), Lingkaran-Bundar (Sinonim)." },
+        { q: "PRESTISE =", o: ["Hadiah", "Wibawa", "Kekayaan", "Usaha", "Gengsi"], a: 1, h: "Prestise = Wibawa." },
+        { q: "REDUKSI ><", o: ["Diskon", "Pemotongan", "Penambahan", "Penyusutan", "Perbaikan"], a: 2, h: "Lawan reduksi adalah penambahan." },
+        { q: "SARJANA : SKRIPSI = ... : ...", o: ["Dokter : Obat", "Magister : Tesis", "Siswa : Ujian", "Guru : Kelas", "Buruh : Gaji"], a: 1, h: "Lulusan & Tugas Akhir: Sarjana-Skripsi, Magister-Tesis." },
+        { q: "STAGNAN ><", o: ["Diam", "Berhenti", "Dinamis", "Kaku", "Tetap"], a: 2, h: "Lawan stagnan adalah dinamis." },
+        { q: "HIBRIDA =", o: ["Asli", "Unggul", "Cepat", "Persilangan", "Lokal"], a: 3, h: "Hibrida = Persilangan." },
+        { q: "OTODIDAK =", o: ["Belajar sendiri", "Guru besar", "Sekolah tinggi", "Ilmu pasti", "Teknik mesin"], a: 0, h: "Otodidak = Belajar sendiri." },
+        { q: "KONTRA ><", o: ["Lawan", "Setuju", "Pro", "Beda", "Tolak"], a: 2, h: "Lawan kontra adalah pro." },
+        { q: "PESAWAT : PILOT = ... : ...", o: ["Masinis : Kereta", "Kapal : Nahkoda", "Bus : Supir", "Kereta : Masinis", "Sepeda : Gowes"], a: 1, h: "Pesawat (Pilot), Kapal (Nahkoda)." },
+        { q: "DONOR : DARAH = ... : ...", o: ["Zakat : Harta", "Tabungan : Bank", "Siswa : Buku", "Petani : Padi", "Pasar : Uang"], a: 0, h: "Donor (Darah), Zakat (Harta)." },
+        { q: "EGALITER =", o: ["Sombong", "Sederajat", "Berkuasa", "Kaya", "Miskin"], a: 1, h: "Egaliter = Sederajat." },
+        { q: "ANOMALI ><", o: ["Aneh", "Normal", "Sesuai", "Beda", "Unik"], a: 1, h: "Lawan anomali adalah normal." },
+        { q: "HUJAN : BANJIR = ... : ...", o: ["Lampu : Terang", "Api : Panas", "Luka : Nyeri", "Makan : Lapar", "Tidur : Mimpi"], a: 2, h: "Sebab akibat: Hujan-Banjir, Luka-Nyeri." },
+        { q: "KULINER : MAKANAN = ... : ...", o: ["Otomotif : Mesin", "Busana : Pakaian", "Properti : Tanah", "Medis : Obat", "Seni : Lukis"], a: 1, h: "Kuliner (Makanan), Busana (Pakaian)." },
+        { q: "GURU : SEKOLAH = ... : ...", o: ["Petani : Sawah", "Supir : Ban", "Dokter : Obat", "Buruh : Pabrik", "Nelayan : Perahu"], a: 0, h: "Tempat Bekerja: Guru di Sekolah, Petani di Sawah." },
+        { q: "KOMALEM =", o: ["Keadaan", "Keseimbangan", "Kesenangan", "Kenikmatan", "Kebiasaan"], a: 1, h: "Komalem = Keseimbangan." },
+        { q: "NAHKODA : KAPAL = MASINIS : ...", o: ["Bus", "Pesawat", "Kereta Api", "Mobil", "Motor"], a: 2, h: "Nahkoda (Kapal), Masinis (Kereta Api)." }
+    ];
+
+    window.onload = () => { if (new Date() > new Date("2026-07-01")) { document.getElementById('expiry-msg').style.display='block'; document.getElementById('btn-start').disabled=true; } };
+    function disableSecurity(e) { if (e.ctrlKey && (e.key==='c'||e.key==='u'||e.key==='s')) return false; if (e.key==='F12') return false; }
+    function shuffle(a) { for (let i=a.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+    function mulaiTes() {
+        if(document.getElementById('inPass').value === "persona01" && document.getElementById('inName').value) {
+            bankAcak = shuffle([...bankAsli]);
+            document.getElementById('page-login').style.display='none';
+            document.getElementById('page-quiz').style.display='block';
+            update(); timer(1800);
+        } else { alert("Periksa Nama & Password (persona01)"); }
+    }
+
+    function update() {
+        const s = bankAcak[idx];
+        document.getElementById('main-q').innerHTML = `<b>SOAL ${idx+1}</b><br>${s.q}`;
+        let h = "";
+        s.o.forEach((opt, i) => { h += `<div class="opt-box ${userAns[idx]===i?'selected':''}" onclick="pilih(${i})"><span class="prefix">${String.fromCharCode(65+i)}.</span> ${opt}</div>`; });
+        document.getElementById('main-opts').innerHTML = h;
+        nav();
+    }
+
+    function pilih(i) { userAns[idx] = i; update(); setTimeout(() => { if(idx<49) { idx++; update(); } }, 300); }
+    function arah(n) { if(n===1 && idx===49) { if(confirm("Kirim jawaban?")) finish(); return; } idx+=n; if(idx<0)idx=0; update(); }
+    function nav() { let h=""; bankAcak.forEach((_,i)=>{ h+=`<div class="nav-item ${i===idx?'active':''} ${userAns[i]!==undefined?'filled':''}" onclick="idx=${i};update()">${i+1}</div>`; }); document.getElementById('nav-nums').innerHTML=h; }
+    function timer(s) { let t=setInterval(()=>{ let m=Math.floor(s/60); let sc=s%60; document.getElementById('timer').innerText=`${m}:${sc<10?'0':''}${sc}`; if(s--<=0){ clearInterval(t); finish(); } },1000); }
+
+    function finish() {
+        document.getElementById('page-quiz').style.display='none';
+        document.getElementById('page-result').style.display='block';
+        let b=0; let l="";
+        bankAcak.forEach((s,i)=>{
+            if(userAns[i]===s.a) b++;
+            l+=`<div class="teach-box"><b>${i+1}. ${s.q}</b><br>Jawaban: ${userAns[i]!==undefined?String.fromCharCode(65+userAns[i]):'-'}<br><span style="color:green">Kunci: ${String.fromCharCode(65+s.a)}</span><br><i>Penjelasan: ${s.h}</i></div>`;
+        });
+        document.getElementById('res-info').innerHTML = `<b>Nama:</b> ${document.getElementById('inName').value}<br><b>Selesai:</b> ${new Date().toLocaleString('id-ID')}`;
+        document.getElementById('score-val').innerText = "SKOR: " + Math.round((b/50)*100);
+        document.getElementById('res-list').innerHTML = l;
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('pdf-export-area');
+        html2pdf().set({ margin: 10, filename: 'Hasil_Tes_Verbal_PRC.pdf', html2canvas: { scale: 2 }, pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } }).from(element).save();
+    }
+</script>
+</body>
+</html>

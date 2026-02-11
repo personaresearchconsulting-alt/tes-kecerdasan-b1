@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tes Kecerdasan - Persona Research And Consulting</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --primary: #1a4a7a; --bg: #f0f2f5; --accent: #1e4b82; }
+        body { font-family: 'Arial', sans-serif; margin: 0; background: var(--bg); color: #333; -webkit-user-select: none; user-select: none; }
+        
+        .app-footer { text-align: center; padding: 25px; color: #666; font-size: 14px; width: 100%; box-sizing: border-box; }
+        .app-footer b { color: #222; font-size: 15px; }
+
+        .login-container { max-width: 450px; margin: 60px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border-bottom: 5px solid var(--primary); }
+        .logo-pc { background: #000; color: white; width: 70px; height: 70px; line-height: 70px; border-radius: 15px; margin: 0 auto 20px; font-weight: bold; font-size: 28px; }
+        
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ccc; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
+        .btn-main { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 18px; transition: 0.3s; }
+        
+        .wrapper { display: none; max-width: 1200px; margin: 20px auto; padding: 20px; display: flex; gap: 25px; }
+        .content-area { flex: 3; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); min-height: 500px; }
+        .sidebar-right { flex: 1; background: white; padding: 25px; border-radius: 15px; height: fit-content; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: sticky; top: 20px; }
+
+        .q-text { font-size: 22px; font-weight: bold; margin-bottom: 25px; color: #111; line-height: 1.4; text-align: left; }
+        .opt-box { padding: 15px 20px; border: 2px solid #eee; border-radius: 12px; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; font-size: 18px; transition: 0.2s; text-align: left; }
+        .opt-box:hover { background: #f0f7ff; border-color: var(--primary); }
+        .opt-box.selected { background: var(--primary); color: white; border-color: var(--primary); }
+        .prefix { font-weight: bold; margin-right: 15px; width: 25px; }
+
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
+        .nav-item { padding: 10px; border: 1px solid #ddd; text-align: center; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 13px; }
+        .nav-item.filled { background: var(--accent); color: white; border-color: var(--accent); }
+        .nav-item.active { border: 2px solid #ff9800; background: #fff3e0; }
+
+        .teach-box { background: #fffdf0; border-left: 8px solid #f1c40f; padding: 30px; margin-bottom: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: left; }
+        .teach-text { font-size: 20px; line-height: 1.8; color: #333; }
+        .correct-label { color: #27ae60; font-weight: bold; font-size: 19px; display: block; margin-bottom: 10px; }
+        
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="page-login" class="login-container">
+    <div class="logo-pc">PRC</div>
+    <h1 style="letter-spacing:2px; margin:10px 0;">TES KECERDASAN</h1>
+    <div style="color:#666; margin-bottom:30px;">Persona Research And Consulting</div>
+    
+    <div id="expired-msg" style="display:none; color:red; font-weight:bold; margin-bottom:20px; border: 2px dashed red; padding: 10px;">
+        MAAF, MASA BERLAKU AKSES SOAL INI TELAH HABIS.
+    </div>
+
+    <div id="login-form">
+        <input type="text" id="inName" placeholder="NAMA LENGKAP">
+        <input type="password" id="inPass" placeholder="PASSWORD">
+        <button class="btn-main" onclick="mulaiTes()">MASUK SESI</button>
+    </div>
+
+    <div class="app-footer">
+        <b>Persona Research and Consulting 2026</b><br>
+        CS: 0877-4251-5786
+    </div>
+</div>
+
+<div id="page-quiz" style="display:none;">
+    <div class="wrapper" id="quizWrapper" style="display:flex;">
+        <div class="content-area">
+            <div id="main-q" class="q-text"></div>
+            <div id="main-opts"></div>
+            <div style="margin-top: 40px; display: flex; justify-content: space-between;">
+                <button class="btn-main" style="width: 150px; background: #666;" onclick="arah(-1)">Kembali</button>
+                <button class="btn-main" style="width: 150px;" id="btn-next" onclick="arah(1)">Lanjut</button>
+            </div>
+        </div>
+        <div class="sidebar-right">
+            <div id="timer" style="text-align: center; font-size: 26px; font-weight: bold; color: #d9534f; margin-bottom: 20px;">30:00</div>
+            <h4 style="margin: 0 0 10px 0;">Navigasi Soal</h4>
+            <div class="nav-grid" id="nav-nums"></div>
+        </div>
+    </div>
+    <div class="app-footer">
+        <b>Persona Research And Consulting 2026</b> | wa: 0877-4251-5786
+    </div>
+</div>
+
+<div id="page-result" style="display:none; max-width: 950px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px;">
+    <div id="pdf-content">
+        <h2 style="text-align:center;">HASIL AKHIR TES KECERDASAN</h2>
+        <div id="user-info" style="background:#f4f4f4; padding:20px; border-radius:10px; margin-bottom:20px; line-height: 1.8; text-align: left;"></div>
+        <div id="score-big" style="text-align:center; font-size:70px; font-weight:bold; color:var(--accent); margin-bottom: 20px;">0</div>
+        <hr>
+        <h3 style="font-size:26px; color:#444; margin-top: 30px;">PEMBAHASAN DETAIL (MODE BELAJAR)</h3>
+        <div id="discussion-list"></div>
+    </div>
+    
+    <button class="btn-main no-print" onclick="downloadPDF()" style="background:#27ae60; margin-top: 20px;">Download Pembahasan (PDF)</button>
+    <div class="app-footer">
+        <b>Persona Research And Consulting 2026</b> | CS: 0877-4251-5786
+    </div>
+</div>
+
+<script>
+    // --- SISTEM EXPIRED DATE ---
+    const tglKadaluarsa = new Date("2026-05-11"); // Berlaku sampai 11 juli 2026
+    const tglSekarang = new Date();
+    if(tglSekarang >= tglKadaluarsa) {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('expired-msg').style.display = 'block';
+    }
+
+    let idx = 0;
+    let userAns = {};
+    let startTime;
+    
+    const bank = [
+        { q: "Semua mawar adalah bunga. Sebagian bunga berwarna merah. Kesimpulan yang benar adalah...", o: ["Semua mawar merah", "Sebagian mawar merah", "Mawar yang bukan merah bukan bunga", "Ada mawar yang mungkin merah", "Bunga merah pasti mawar"], a: 3, h: "Mari kita analisis pelan-pelan ya. Semua mawar pasti masuk kategori bunga. Tapi, hanya 'sebagian' bunga yang merah. Kita tidak tahu apakah mawar termasuk bagian yang merah itu atau tidak. Jadi, kesimpulan paling logis adalah 'Ada mawar yang mungkin merah'." },
+        { q: "Jika P > Q, Q < R, dan R = S, maka...", o: ["P > S", "P < S", "S > Q", "P = S", "Hubungan P dan S tidak pasti"], a: 2, h: "Coba kita urutkan: Kita tahu Q lebih kecil dari R, dan R sama dengan S. Berarti Q juga lebih kecil dari S (S > Q). Hubungan P dengan S tidak bisa dipastikan karena tidak ada perbandingan langsung di soal." },
+        { q: "Kebutuhan : ... = ... : Minum", o: ["Primer - Haus", "Makan - Haus", "Makan - Cairan", "Hidup - Air", "Makan - Dahaga"], a: 1, h: "Analogi ini adalah hubungan kebutuhan dasar. Makan adalah kebutuhan untuk rasa lapar (implisit), dan Minum adalah kebutuhan untuk rasa Haus. Jadi pasangan paling tepat adalah Makan dan Haus." },
+        { q: "4, 9, 19, 39, ... Angka selanjutnya adalah?", o: ["49", "59", "69", "79", "89"], a: 3, h: "Perhatikan polanya: (4 x 2) + 1 = 9. (9 x 2) + 1 = 19. (19 x 2) + 1 = 39. Berarti selanjutnya adalah (39 x 2) + 1 = 79." },
+        { q: "Manakah yang tidak termasuk kelompoknya?", o: ["Singapura", "Thailand", "Indonesia", "Australia", "Vietnam"], a: 3, h: "Singapura, Thailand, Indonesia, dan Vietnam adalah anggota ASEAN di Asia Tenggara. Sedangkan Australia adalah negara di benua Australia. Jadi Australia yang paling beda." },
+        { q: "Seorang pedagang membeli barang seharga 500rb dan ingin untung 25%. Berapa harga jualnya?", o: ["600rb", "625rb", "650rb", "675rb", "700rb"], a: 1, h: "Cara hitungnya: 25% dari 500rb adalah 125rb. Maka harga jual = Modal + Untung = 500rb + 125rb = 625rb." },
+        { q: "Tangan : Sarung Tangan = Kepala : ...", o: ["Topi", "Rambut", "Otak", "Telinga", "Helm"], a: 4, h: "Hubungan fungsinya adalah pelindung/penutup formal. Tangan dilindungi sarung tangan, Kepala (terutama dalam konteks keamanan/tugas) dilindungi oleh Helm." },
+        { q: "Jika hari ini adalah hari Rabu, hari apakah 100 hari lagi?", o: ["Kamis", "Jumat", "Sabtu", "Minggu", "Senin"], a: 1, h: "Satu minggu ada 7 hari. 100 dibagi 7 sisa 2. Maka 100 hari lagi adalah Rabu + 2 hari = Jumat." },
+        { q: "Kakak : Adik = ... : ...", o: ["Ibu : Anak", "Guru : Murid", "Senior : Junior", "Atasan : Bawahan", "Presiden : Rakyat"], a: 2, h: "Hubungan ini adalah strata usia/urutan posisi dalam keluarga. Kakak lebih tua (Senior) dan Adik lebih muda (Junior)." },
+        { q: "Semua mahasiswa harus rajin. Andi adalah mahasiswa yang tidak rajin. Kesimpulan?", o: ["Andi bukan mahasiswa", "Andi mahasiswa luar biasa", "Andi melanggar aturan", "Andi rajin di waktu lain", "Tidak ada kesimpulan"], a: 2, h: "Jika syarat mutlak mahasiswa adalah rajin, dan Andi tidak rajin, berarti Andi tidak memenuhi kriteria mahasiswa yang seharusnya atau dia melanggar premis tersebut." },
+        { q: "Berapakah 15% dari 200?", o: ["20", "25", "30", "35", "40"], a: 2, h: "15/100 x 200 = 15 x 2 = 30. Sangat sederhana!" },
+        { q: "Jika A=1, B=2, maka CAB adalah...", o: ["321", "312", "123", "213", "333"], a: 1, h: "C adalah huruf ke-3, A ke-1, dan B ke-2. Jadi 312." },
+        { q: "Gergaji : Kayu = ... : ...", o: ["Pisau : Daging", "Gunting : Kertas", "Cangkul : Tanah", "Sendok : Makan", "Pena : Tulis"], a: 1, h: "Gergaji alat untuk memotong kayu. Gunting alat untuk memotong kertas. Hubungannya spesifik memotong benda tipis/lembaran." },
+        { q: "1, 4, 9, 16, 25, ...", o: ["30", "34", "36", "40", "49"], a: 2, h: "Ini pola bilangan kuadrat: 1x1, 2x2, 3x3, 4x4, 5x5. Selanjutnya 6x6 = 36." },
+        { q: "Tinggi : Dalam = ... : ...", o: ["Awan : Laut", "Gunung : Jurang", "Langit : Tanah", "Puncak : Dasar", "Terang : Gelap"], a: 3, h: "Tinggi lawannya Dalam. Pasangan posisi yang paling tepat menggambarkan batas atas dan batas bawah adalah Puncak dan Dasar." },
+        { q: "Manakah yang paling berat?", o: ["1kg kapas", "1kg besi", "1kg air", "1kg kertas", "Semua sama berat"], a: 4, h: "Hati-hati terjebak ya! Semuanya disebutkan '1kg', jadi beratnya sama saja meskipun volumenya berbeda." },
+        { q: "Senapan : Berburu = ... : ...", o: ["Parang : Tebas", "Pancing : Ikan", "Cangkul : Bertani", "Sapu : Bersih", "Pena : Gambar"], a: 2, h: "Senapan adalah alat utama untuk kegiatan Berburu. Cangkul adalah alat utama untuk kegiatan Bertani." },
+        { q: "Jika X+3 = 7, maka 2X = ...", o: ["4", "6", "8", "10", "12"], a: 2, h: "X+3=7 berarti X=4. Maka 2X = 2x4 = 8." },
+        { q: "Kamera : Fotografer = ... : ...", o: ["Kuas : Pelukis", "Raket : Tenis", "Sawah : Petani", "Mobil : Supir", "Buku : Penulis"], a: 0, h: "Kamera adalah alat utama yang dipegang Fotografer. Kuas adalah alat utama yang dipegang Pelukis." },
+        { q: "Manakah yang bukan warna primer?", o: ["Merah", "Biru", "Kuning", "Hijau", "Semua primer"], a: 3, h: "Warna primer dalam seni rupa adalah Merah, Kuning, Biru. Hijau adalah warna sekunder (campuran biru dan kuning)." },
+        { q: "Jika 5 kucing menangkap 5 tikus dalam 5 menit, berapa menit 1 kucing menangkap 1 tikus?", o: ["1", "5", "10", "25", "50"], a: 1, h: "Logikanya: 5 kucing bekerja masing-masing menangkap 1 tikus secara bersamaan dalam 5 menit. Jadi 1 kucing pun butuh 5 menit untuk menangkap 1 tikus." },
+        { q: "Oksigen : Manusia = ... : ...", o: ["Bensin : Mobil", "Air : Ikan", "Listrik : Lampu", "Karbon : Tumbuhan", "Tanah : Cacing"], a: 3, h: "Manusia menghirup/butuh Oksigen untuk hidup. Tumbuhan butuh Karbon (dioksida) untuk proses fotosintesis." },
+        { q: "2, 6, 18, 54, ...", o: ["108", "150", "162", "200", "216"], a: 2, h: "Pola dikali 3: 54 x 3 = 162." },
+        { q: "Lari : Lelah = ... : ...", o: ["Makan : Kenyang", "Haus : Minum", "Belajar : Pintar", "Kerja : Gaji", "Jatuh : Sakit"], a: 0, h: "Hubungan Sebab-Akibat langsung. Lari menyebabkan Lelah, Makan menyebabkan Kenyang." },
+        { q: "Semua burung bertelur. Mamalia tidak bertelur. Kesimpulan?", o: ["Burung bukan mamalia", "Mamalia bukan burung", "Semua mamalia burung", "A dan B benar", "A dan B salah"], a: 3, h: "Karena burung bertelur dan mamalia tidak, maka burung pasti bukan mamalia, and mamalia pasti bukan burung. Keduanya benar." },
+        { q: "1/2 + 1/4 = ...", o: ["2/4", "2/6", "3/4", "1/6", "3/8"], a: 2, h: "Samakan penyebut: 2/4 + 1/4 = 3/4." },
+        { q: "Bulan : Bumi = Bumi : ...", o: ["Bintang", "Orbit", "Satelit", "Matahari", "Planet"], a: 3, h: "Bulan mengelilingi Bumi. Bumi mengelilingi Matahari." },
+        { q: "Manakah yang paling kecil?", o: ["0.1", "0.01", "0.11", "0.001", "1.0"], a: 3, h: "Semakin banyak angka nol di belakang koma sebelum angka lain, nilainya semakin kecil. 0.001 adalah yang terkecil." },
+        { q: "A, C, E, G, ...", o: ["H", "I", "J", "K", "L"], a: 1, h: "Lompat satu huruf: A (b) C (d) E (f) G (h) I." },
+        { q: "Pedagang : Pasar = ... : ...", o: ["Dokter : Obat", "Petani : Cangkul", "Guru : Sekolah", "Siswa : Belajar", "Supir : Jalan"], a: 2, h: "Hubungan profesi dan tempat kerja tetapnya. Pedagang di Pasar, Guru di Sekolah." },
+        { q: "15, 12, 19, 16, 23, ...", o: ["18", "20", "21", "25", "27"], a: 1, h: "Pola selang-seling: 15-3=12, 12+7=19, 19-3=16, 16+7=23, 23-3=20." },
+        { q: "Gandum : Roti = ... : ...", o: ["Kayu : Meja", "Besi : Jembatan", "Pasir : Bangunan", "Susu : Keju", "Kain : Baju"], a: 3, h: "Gandum adalah bahan baku utama pembuat Roti (melalui proses olahan). Susu adalah bahan baku utama pembuat Keju." },
+        { q: "Jika hari ini Selasa, 3 hari sebelum kemarin adalah...", o: ["Sabtu", "Minggu", "Senin", "Jumat", "Kamis"], a: 1, h: "Kemarin adalah Senin. 3 hari sebelum Senin: Minggu, Sabtu, Jumat." },
+        { q: "Sepatu : Kaki = ... : ...", o: ["Cincin : Jari", "Baju : Badan", "Topi : Kepala", "Anting : Telinga", "Jam : Tangan"], a: 2, h: "Sepatu dikenakan di Kaki, Topi dikenakan di Kepala. Hubungan aksesoris penutup bagian tubuh." },
+        { q: "Manakah yang tidak termasuk kelompoknya?", o: ["Melati", "Mawar", "Anggrek", "Pepaya", "Tulip"], a: 3, h: "Melati, Mawar, Anggrek, Tulip adalah jenis bunga. Pepaya adalah jenis buah." },
+        { q: "25% dari 1 jam adalah ... menit", o: ["10", "15", "20", "25", "30"], a: 1, h: "1/4 dari 60 menit = 15 menit." },
+        { q: "Haus : Air = Lapar : ...", o: ["Nasi", "Makan", "Roti", "Kenyang", "Masakan"], a: 1, h: "Haus butuh Air (tindakan umum), Lapar butuh Makan." },
+        { q: "50, 45, 40, 35, ...", o: ["25", "28", "30", "32", "33"], a: 2, h: "Pola dikurangi 5 terus menerus. 35 - 5 = 30." },
+        { q: "Jika 2x + 5 = 15, maka x = ...", o: ["2", "3", "4", "5", "10"], a: 3, h: "2x = 10, maka x = 5." },
+        { q: "Kaku : Statis = ... : ...", o: ["Cair : Dinamis", "Lentur : Elastis", "Padat : Keras", "Panas : Api", "Dingin : Es"], a: 1, h: "Kaku sinonimnya Statis. Lentur sinonimnya Elastis." },
+        { q: "Semua ular tidak berkaki. Biawak berkaki. Kesimpulan?", o: ["Ular bukan biawak", "Biawak bukan ular", "A dan B benar", "Semua salah", "Ular itu biawak"], a: 2, h: "Keduanya memiliki ciri yang bertolak belakang, maka mereka bukan satu jenis." },
+        { q: "Berapa 2/3 dari 30?", o: ["10", "15", "20", "25", "30"], a: 2, h: "30 dibagi 3 = 10, dikali 2 = 20." },
+        { q: "Aceh : Serambi Mekkah = ... : ...", o: ["Semarang : Kota Atlas", "Surabaya : Kota Pahlawan", "Bandung : Paris van Java", "Bogor : Kota Hujan", "Semua Benar"], a: 4, h: "Semua adalah julukan kota yang tepat di Indonesia." },
+        { q: "121, 144, 169, ...", o: ["180", "196", "200", "225", "256"], a: 1, h: "Pola kuadrat: 11^2, 12^2, 13^2. Selanjutnya 14^2 = 196." },
+        { q: "Manakah yang merupakan bilangan prima?", o: ["9", "15", "21", "27", "31"], a: 4, h: "Bilangan prima hanya bisa dibagi 1 dan dirinya sendiri. 31 adalah prima." },
+        { q: "Padi : Wereng = ... : ...", o: ["Manusia : Nyamuk", "Kucing : Tikus", "Pohon : Ulat", "Bunga : Lebah", "Sapi : Rumput"], a: 2, h: "Hubungan tanaman dan hamanya. Padi dirusak Wereng, Pohon dirusak Ulat." },
+        { q: "Jika S-2 = 10, maka S+2 = ...", o: ["10", "12", "14", "16", "18"], a: 2, h: "S=12. Maka 12+2=14." },
+        { q: "Dingin : Menggigil = ... : ...", o: ["Panas : Berkeringat", "Basah : Hujan", "Terang : Lampu", "Lapar : Kurus", "Ngantuk : Tidur"], a: 0, h: "Reaksi biologis terhadap suhu. Dingin membuat menggigil, Panas membuat berkeringat." },
+        { q: "3, 7, 11, 15, ...", o: ["17", "18", "19", "20", "21"], a: 2, h: "Pola ditambah 4. 15 + 4 = 19." },
+        { q: "Pilot : Pesawat = ... : ...", o: ["Nahkoda : Kapal", "Masinis : Kereta", "Supir : Mobil", "A, B, C Benar", "Semua Salah"], a: 3, h: "Semua pasangan profesi pengemudi dan kendaraannya tersebut adalah benar." }
+    ];
+
+    function mulaiTes() {
+        const pass = document.getElementById('inPass').value.trim().toLowerCase();
+        const nama = document.getElementById('inName').value.trim();
+        
+        if(!nama) return alert("Harap isi Nama Lengkap!");
+        if(pass !== "persona01") return alert("Password Salah!");
+        
+        startTime = new Date();
+        document.getElementById('page-login').style.display = 'none';
+        document.getElementById('page-quiz').style.display = 'block';
+        update();
+        timer(1800);
+    }
+
+    function update() {
+        const s = bank[idx];
+        document.getElementById('main-q').innerHTML = `Soal ${idx+1}:<br>${s.q}`;
+        let h = "";
+        s.o.forEach((opt, i) => {
+            const sel = userAns[idx] === i ? 'selected' : '';
+            h += `<div class="opt-box ${sel}" onclick="pilih(${i})"><span class="prefix">${String.fromCharCode(65+i)}.</span> ${opt}</div>`;
+        });
+        document.getElementById('main-opts').innerHTML = h;
+        document.getElementById('btn-next').innerText = idx === bank.length-1 ? "SELESAI" : "LANJUT";
+        nav();
+    }
+
+    function pilih(i) { 
+        userAns[idx] = i; 
+        update(); 
+        setTimeout(() => {
+            if (idx < bank.length - 1) {
+                idx++;
+                update();
+            }
+        }, 300);
+    }
+
+    function arah(n) {
+        if(n === 1 && idx === bank.length-1) { if(confirm("Yakin ingin mengakhiri sesi?")) finish(); return; }
+        idx += n; if(idx < 0) idx = 0; if(idx >= bank.length) idx = bank.length-1;
+        update();
+    }
+
+    function nav() {
+        let h = "";
+        bank.forEach((_, i) => {
+            let c = (i === idx) ? "nav-item active" : "nav-item";
+            if(userAns[i] !== undefined) c += " filled";
+            h += `<div class="${c}" onclick="idx=${i};update();">${i+1}</div>`;
+        });
+        document.getElementById('nav-nums').innerHTML = h;
+    }
+
+    function timer(s) {
+        let clock = setInterval(() => {
+            let m = Math.floor(s/60); let sec = s%60;
+            document.getElementById('timer').innerText = `${m}:${sec<10?'0':''}${sec}`;
+            if(s>0) s--; else { clearInterval(clock); finish(); }
+        }, 1000);
+    }
+
+    function finish() {
+        document.getElementById('page-quiz').style.display = 'none';
+        document.getElementById('page-result').style.display = 'block';
+        let benar = 0; let dHtml = "";
+        bank.forEach((s, i) => {
+            if(userAns[i] === s.a) benar++;
+            dHtml += `<div class="teach-box">
+                <p><b>SOAL NO ${i+1}</b></p>
+                <p style="font-size:19px;">${s.q}</p>
+                <span class="correct-label">Jawaban Benar: ${String.fromCharCode(65+s.a)}</span>
+                <div class="teach-text"><b>Pembahasan:</b><br>${s.h}</div>
+            </div>`;
+        });
+        const tgl = new Date();
+        document.getElementById('user-info').innerHTML = `
+            <b>Nama Peserta:</b> ${document.getElementById('inName').value}<br>
+            <b>Tanggal Pengerjaan:</b> ${tgl.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}<br>
+            <b>Waktu Selesai:</b> ${tgl.toLocaleTimeString('id-ID')} WIB
+        `;
+        document.getElementById('score-big').innerText = "SKOR: " + Math.round((benar/bank.length)*100);
+        document.getElementById('discussion-list').innerHTML = dHtml;
+        window.scrollTo(0,0);
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('pdf-content');
+        const opt = {
+            margin:       10,
+            filename:     'Pembahasan_Tes_Kecerdasan.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+</script>
+</body>
+</html>

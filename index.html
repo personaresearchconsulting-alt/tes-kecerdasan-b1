@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRC - Master Portal CAT</title>
+    <style>
+        :root { --prc: #1a4a7a; --accent: #e67e22; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; text-align: center; }
+        .header { background: var(--prc); color: white; padding: 30px; border-bottom: 5px solid var(--accent); }
+        .container { max-width: 900px; margin: 40px auto; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: 0.3s; cursor: pointer; border-top: 5px solid var(--prc); }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        .card h3 { color: var(--prc); margin-bottom: 10px; }
+        .card p { color: #666; font-size: 14px; }
+        .status { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 10px; }
+        .ready { background: #d4edda; color: #155724; }
+        .locked { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>PORTAL EVALUASI CAT</h1>
+    <p>Persona Research And Consulting (PRC)</p>
+</div>
+
+<div class="container">
+    <div class="card" onclick="location.href='SILOGISME.HTML'">
+        <h3>Tes Silogisme</h3>
+        <p>50 Soal Penalaran Analitik</p>
+        <span class="status ready">SIAP KERJAKAN</span>
+    </div>
+
+    <div class="card" onclick="location.href='Kecerdasan_1.HTML'">
+        <h3>Kecerdasan 1</h3>
+        <p>Evaluasi Logika & Kemampuan Umum</p>
+        <span class="status ready">SIAP KERJAKAN</span>
+    </div>
+
+    <div class="card" onclick="location.href='KECERDASAN_2.HTML'">
+        <h3>Kecerdasan 2</h3>
+        <p>Pendalaman Materi Kecerdasan</p>
+        <span class="status ready">SIAP KERJAKAN</span>
+    </div>
+
+    <div class="card" onclick="location.href='KECERDASAN_VERBAL_1.HTML'">
+        <h3>Kecerdasan Verbal</h3>
+        <p>Analogi, Sinonim, & Antonim</p>
+        <span class="status ready">SIAP KERJAKAN</span>
+    </div>
+
+    <div class="card" onclick="location.href='KECERMATAN.HTML'" style="border-top-color: var(--accent);">
+        <h3>Tes Kecermatan</h3>
+        <p>Simulasi Angka Hilang (Kolom)</p>
+        <span class="status ready">NEW</span>
+    </div>
+</div>
+
+</body>
+</html>

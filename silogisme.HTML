@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRC - Evaluasi Silogisme & Penalaran Analitik</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root { --prc: #1a4a7a; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); color: #333; -webkit-user-select: none; user-select: none; }
+        
+        /* Layout Login */
+        .login-box { max-width: 450px; margin: 60px auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border-bottom: 5px solid var(--prc); }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; }
+        .btn-gas { width: 100%; padding: 16px; background: var(--prc); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 18px; transition: 0.3s; }
+        .btn-gas:hover { background: #14385d; }
+
+        /* Layout Quiz */
+        .wrapper { display: none; max-width: 1200px; margin: 20px auto; padding: 20px; display: flex; gap: 25px; }
+        .main-content { flex: 3; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); min-height: 500px; }
+        .side-content { flex: 1; background: white; padding: 25px; border-radius: 15px; height: fit-content; position: sticky; top: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+        .q-text { font-size: 19px; line-height: 1.8; margin-bottom: 30px; padding: 25px; background: #f8fafc; border-radius: 12px; border-left: 6px solid var(--prc); text-align: left; font-weight: 500; }
+        .opt { padding: 16px 20px; border: 2px solid #edf2f7; border-radius: 12px; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; font-size: 17px; transition: 0.2s; text-align: left; }
+        .opt:hover { background: #f0f7ff; border-color: var(--prc); }
+        .opt.active { background: var(--prc); color: white; border-color: var(--prc); }
+        
+        .grid-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
+        .dot { padding: 10px 0; border: 1px solid #ddd; text-align: center; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 12px; transition: 0.2s; }
+        .dot.filled { background: var(--prc); color: white; border-color: var(--prc); }
+        .dot.active { border: 2px solid #ff9800; background: #fff3e0; }
+
+        /* Hasil & Pembahasan */
+        .teach-card { background: #fffdf0; border-left: 8px solid #f1c40f; padding: 25px; margin-bottom: 25px; border-radius: 10px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="login-scr" class="login-box">
+    <div style="background:#000;color:#fff;width:70px;height:70px;line-height:70px;margin:0 auto 20px;border-radius:15px;font-weight:bold;font-size:28px;">PRC</div>
+    <h2 style="color:var(--prc); margin-bottom:5px;">Evaluasi Kecerdasan</h2>
+    <p style="color:#666; margin-top:0;">Persona Research And Consulting</p>
+    
+    <div id="expired-msg" style="display:none; color:red; font-weight:bold; margin-bottom:20px; border:2px dashed red; padding:10px;">
+        MAAF, MASA BERLAKU AKSES TELAH HABIS.<br>(Expired: 20 Feb 2026)
+    </div>
+
+    <div id="login-form">
+        <input type="text" id="nama" placeholder="NAMA LENGKAP PESERTA">
+        <input type="password" id="pass" placeholder="PASSWORD">
+        <button class="btn-gas" onclick="mulai()">MASUK SESI TES</button>
+    </div>
+</div>
+
+<div id="quiz-scr" style="display:none;">
+    <div class="wrapper" id="quiz-ui" style="display:flex;">
+        <div class="main-content">
+            <div id="q-body" class="q-text"></div>
+            <div id="opts-area"></div>
+            <div style="margin-top:40px; display:flex; justify-content:space-between;">
+                <button onclick="arah(-1)" style="padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold; border:1px solid #ccc; background:#fff;">KEMBALI</button>
+                <button id="btn-next" onclick="arah(1)" style="padding:12px 25px; background:var(--prc); color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">LANJUTKAN</button>
+            </div>
+        </div>
+        <div class="side-content">
+            <div id="clock" style="font-size:32px; font-weight:bold; color:#e53e3e; margin-bottom:20px;">60:00</div>
+            <h4 style="margin-bottom:10px;">Navigasi Soal</h4>
+            <div class="grid-nav" id="dots-area"></div>
+        </div>
+    </div>
+</div>
+
+<div id="result-scr" style="display:none; max-width:950px; margin:40px auto; background:white; padding:40px; border-radius:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    <div id="pdf-area">
+        <div style="text-align:center; border-bottom:3px solid var(--prc); padding-bottom:20px; margin-bottom:30px;">
+            <h2 style="color:var(--prc); margin:0;">LAPORAN HASIL EVALUASI SILOGISME</h2>
+            <p style="margin:5px 0;">Persona Research And Consulting (PRC)</p>
+        </div>
+        <div id="info-peserta" style="margin-bottom:20px; font-size:18px;"></div>
+        <div id="final-score" style="text-align:center; font-size:80px; font-weight:bold; color:var(--prc); margin-bottom:30px;"></div>
+        <hr>
+        <h3 style="margin-top:30px; color:#444;">DETAIL PEMBAHASAN SOAL</h3>
+        <div id="list-bahas"></div>
+    </div>
+    <button class="btn-gas no-print" onclick="window.print()" style="background:#27ae60; margin-top:20px;">SIMPAN / CETAK PDF</button>
+</div>
+
+<script>
+    // SISTEM EXPIRED DATE (Masa berlaku s/d 20 juli 2026)
+    const expiryDate = new Date("2026-07-21");
+    if(new Date() >= expiryDate) {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('expired-msg').style.display = 'block';
+    }
+
+    let idx = 0; let ans = {};
+    const bankSilo = [
+        { q: "Semua menteri adalah pimpinan lembaga. Sebagian menteri berasal dari partai politik.", o: ["Semua pimpinan lembaga berasal dari partai politik.", "Sebagian pimpinan lembaga berasal dari partai politik.", "Pimpinan lembaga tidak boleh dari partai politik.", "Partai politik pasti memiliki menteri.", "Hanya menteri yang jadi pimpinan lembaga."], a: 1, h: "Jika Semua A adalah B, dan Sebagian A adalah C, maka Sebagian B adalah C. Jadi sebagian pimpinan lembaga (yang menteri) adalah anggota partai politik." },
+        { q: "Jika timnas menang, maka suporter bersorak. Jika suporter bersorak, maka jalanan macet. Faktanya jalanan tidak macet.", o: ["Timnas kalah.", "Timnas menang.", "Suporter tidak bersorak.", "Polisi mengatur jalan.", "Jalanan sedang diperbaiki."], a: 0, h: "Modus Tollens Berantai: Jika jalan tidak macet (~C), maka suporter tidak bersorak (~B). Jika suporter tidak bersorak, maka timnas tidak menang atau kalah (~A)." },
+        { q: "Enam staf (K, L, M, N, O, P) duduk melingkar. K berhadapan dengan N. L duduk di antara N dan O. P berada tepat di sebelah kiri N. Siapa yang berhadapan dengan L?", o: ["M", "O", "P", "K", "N"], a: 0, h: "Urutan posisi melingkar yang mungkin adalah K-P-N-L-O-M. Dengan demikian, L berhadapan dengan M." },
+        { q: "Sebagian peserta seminar adalah dosen. Semua dosen memiliki kartu identitas pegawai.", o: ["Semua peserta seminar punya kartu identitas.", "Sebagian peserta seminar punya kartu identitas.", "Dosen tidak ikut seminar.", "Peserta seminar bukan dosen.", "Hanya dosen yang punya kartu."], a: 1, h: "Kelompok dosen yang menjadi peserta seminar otomatis membawa identitas mereka, sehingga sebagian peserta seminar memiliki kartu." },
+        { q: "Lima gedung (A, B, C, D, E) berbeda tinggi. Gedung A lebih tinggi dari B. Gedung C lebih rendah dari D. Gedung E lebih rendah dari B. Gedung D lebih rendah dari E. Gedung mana yang paling tinggi?", o: ["A", "B", "C", "D", "E"], a: 0, h: "Urutan tinggi: A > B > E > D > C. Gedung A berada di posisi teratas." },
+        { q: "Semua pahlawan adalah pemberani. Sebagian warga desa ini bukan pahlawan.", o: ["Warga desa ini penakut.", "Sebagian warga desa adalah pemberani.", "Warga desa ini bukan pemberani.", "Pahlawan bukan warga desa.", "Tidak dapat ditarik kesimpulan pasti."], a: 4, h: "Premis tidak memberikan informasi tentang sifat warga yang 'bukan pahlawan', sehingga tidak ada kesimpulan logis yang sah." },
+        { q: "Jika debit air naik, maka pintu bendungan dibuka. Jika pintu bendungan dibuka, maka area hilir waspada. Saat ini area hilir tidak waspada.", o: ["Debit air turun.", "Pintu bendungan tertutup.", "Debit air tidak naik.", "Hujan deras di hulu.", "Bendungan sedang diperbaiki."], a: 2, h: "Logika ~C -> ~A. Karena hilir tidak waspada, maka pintu tidak dibuka. Jika pintu tidak dibuka, maka debit air tidak naik." },
+        { q: "Andi lebih gemuk dari Bayu. Ciko lebih kurus dari Bayu. Dedi lebih gemuk dari Andi. Siapa yang paling kurus?", o: ["Andi", "Bayu", "Ciko", "Dedi", "Bayu dan Ciko"], a: 2, h: "Urutan dari paling gemuk: Dedi > Andi > Bayu > Ciko. Maka Ciko paling kurus." },
+        { q: "Tidak ada mahasiswa yang malas lulus tepat waktu. Semua yang lulus tepat waktu mendapat pujian.", o: ["Mahasiswa malas mendapat pujian.", "Hanya mahasiswa rajin yang dapat pujian.", "Ada mahasiswa malas yang dapat pujian.", "Tidak ada mahasiswa malas yang mendapat pujian.", "Mahasiswa rajin pasti malas."], a: 3, h: "Mahasiswa malas tidak lulus tepat waktu. Karena hanya yang lulus tepat waktu yang mendapat pujian, maka yang malas tidak mendapat pujian." },
+        { q: "Semua karyawan tetap mendapat asuransi. Sebagian penghuni mess adalah karyawan tetap.", o: ["Semua penghuni mess dapat asuransi.", "Sebagian penghuni mess dapat asuransi.", "Karyawan tetap tidak tinggal di mess.", "Penghuni mess bukan karyawan tetap.", "Hanya karyawan tetap yang berasuransi."], a: 1, h: "Kelompok penghuni mess yang merupakan karyawan tetap berhak mendapatkan asuransi." },
+        { q: "Jika harga bahan pokok naik, daya beli turun. Jika daya beli turun, ekonomi melambat. Ternyata ekonomi tidak melambat.", o: ["Harga bahan pokok stabil.", "Daya beli meningkat.", "Harga bahan pokok tidak naik.", "Pemerintah memberi subsidi.", "Pasar tetap ramai."], a: 2, h: "Pola Modus Tollens berantai menyimpulkan bahwa penyebab awal (kenaikan harga) tidak terjadi." },
+        { q: "Posisi Antrean: Rika di depan Susi. Tono di belakang Udin. Susi di depan Udin. Siapa yang paling belakang?", o: ["Rika", "Susi", "Tono", "Udin", "Susi dan Tono"], a: 2, h: "Urutan antrean: Rika -> Susi -> Udin -> Tono. Tono berada di urutan terakhir." },
+        { q: "Semua peserta pelatihan adalah praktisi. Sebagian praktisi adalah konsultan ahli.", o: ["Semua konsultan adalah peserta pelatihan.", "Sebagian peserta pelatihan adalah konsultan ahli.", "Konsultan bukan praktisi.", "Praktisi bukan peserta pelatihan.", "Tidak dapat dipastikan hubungan peserta dan konsultan."], a: 4, h: "Premis partikular pada praktisi tidak menjamin adanya irisan langsung dengan subjek peserta pelatihan." },
+        { q: "Setiap atlet harus disiplin. Boni adalah seorang atlet yang sering terlambat latihan.", o: ["Boni adalah atlet berprestasi.", "Boni melanggar prinsip disiplin.", "Keterlambatan bukan masalah.", "Boni bukan atlet.", "Disiplin hanya untuk juara."], a: 1, h: "Karena syarat menjadi atlet adalah disiplin, maka perbuatan sering terlambat menunjukkan pelanggaran terhadap prinsip tersebut." },
+        { q: "Rumah makan yang laris memiliki menu yang enak. Rumah makan 'Sejahtera' tidak laris.", o: ["Menu 'Sejahtera' tidak enak.", "Menu 'Sejahtera' sangat enak.", "Rumah makan 'Sejahtera' baru buka.", "Rumah makan 'Sejahtera' menunya mungkin tidak enak.", "Laris tidaknya bukan karena rasa."], a: 3, h: "Dalam logika, tidak larisnya sebuah tempat hanya membuka kemungkinan (probabilitas) bahwa rasanya tidak enak, bukan kepastian absolut." },
+        { q: "Semua komputer canggih memerlukan daya listrik besar. Sebagian gawai di toko ini adalah komputer canggih.", o: ["Semua gawai butuh listrik besar.", "Sebagian gawai di toko ini butuh listrik besar.", "Gawai tidak butuh listrik.", "Toko ini hanya jual komputer.", "Listrik besar hanya untuk komputer."], a: 1, h: "Bagian dari gawai yang merupakan komputer canggih memerlukan daya listrik yang besar." },
+        { q: "Jika musim kemarau panjang, cadangan air menipis. Jika cadangan air menipis, warga mengeluh. Faktanya warga tidak mengeluh.", o: ["Cadangan air melimpah.", "Musim kemarau tidak panjang.", "Hujan turun terus menerus.", "Warga sudah terbiasa.", "Musim kemarau baru mulai."], a: 1, h: "Penolakan terhadap keluhan warga (konsekuen) mengakibatkan penolakan terhadap sebab awal (kemarau panjang)." },
+        { q: "Urutan Kecepatan: Mobil P lebih cepat dari Q. Mobil R lebih lambat dari S. Mobil Q lebih cepat dari S. Mobil mana yang paling lambat?", o: ["P", "Q", "R", "S", "Q dan S"], a: 2, h: "Urutan kecepatan: P > Q > S > R. Mobil R adalah yang paling lambat." },
+        { q: "Tidak ada koruptor yang dicintai rakyat. Pak Ahmad dicintai rakyat.", o: ["Pak Ahmad adalah pejabat jujur.", "Pak Ahmad bukan seorang koruptor.", "Rakyat salah menilai Pak Ahmad.", "Koruptor takut pada Pak Ahmad.", "Pak Ahmad mantan koruptor."], a: 1, h: "Ahmad memiliki sifat yang tidak dimiliki koruptor, maka Ahmad bukan koruptor." },
+        { q: "Semua lulusan hukum paham undang-undang. Sebagian staf HRD adalah lulusan hukum.", o: ["Semua staf HRD paham undang-undang.", "Sebagian staf HRD paham undang-undang.", "Lulusan hukum dilarang jadi HRD.", "Staf HRD tidak perlu paham hukum.", "Undang-undang hanya untuk HRD."], a: 1, h: "Staf HRD yang memiliki latar belakang pendidikan hukum pasti memahami undang-undang." },
+        { q: "Jika investasi aman, maka investor tertarik. Ternyata investor tidak tertarik.", o: ["Investasi berisiko tinggi.", "Investasi tidak aman.", "Modal investor habis.", "Pasar modal sedang tutup.", "Investor mencari lahan lain."], a: 1, h: "Ketiadaan minat investor menunjukkan syarat keamanan investasi tidak terpenuhi (Modus Tollens)." },
+        { q: "Lima siswa (V, W, X, Y, Z) mengukur tinggi badan. V lebih pendek dari W. X lebih tinggi dari Y. Z lebih pendek dari V namun lebih tinggi dari X. Siapa yang paling tinggi?", o: ["V", "W", "X", "Y", "Z"], a: 1, h: "Urutan tinggi: W > V > Z > X > Y. Siswa W adalah yang tertinggi." },
+        { q: "Semua pohon berdaun hijau melakukan fotosintesis. Sebagian tanaman di pot adalah pohon berdaun hijau.", o: ["Semua tanaman pot melakukan fotosintesis.", "Sebagian tanaman pot melakukan fotosintesis.", "Tanaman pot tidak butuh cahaya.", "Fotosintesis hanya untuk pohon.", "Hanya tanaman hijau yang di pot."], a: 1, h: "Tanaman di pot yang termasuk kategori pohon berdaun hijau pasti berfotosintesis." },
+        { q: "Jika lampu merah menyala, kendaraan berhenti. Jika kendaraan berhenti, tidak terjadi kecelakaan. Ternyata terjadi kecelakaan.", o: ["Lampu merah tidak menyala.", "Kendaraan tetap melaju.", "Lampu merah rusak.", "Rem kendaraan blong.", "Lampu sedang hijau."], a: 0, h: "Kecelakaan terjadi menunjukkan kendaraan tidak berhenti, yang berarti lampu merah tidak menyala." },
+        { q: "Hanya anggota resmi yang boleh masuk ruangan. Pak Satrio masuk ke ruangan tersebut.", o: ["Pak Satrio adalah tamu istimewa.", "Pak Satrio adalah anggota resmi.", "Pak Satrio petugas kebersihan.", "Ruangan tersebut sedang kosong.", "Pak Satrio melanggar aturan."], a: 1, h: "Karena syarat masuk adalah status anggota, maka keberadaan Pak Satrio di dalam membuktikan dia anggota resmi." },
+        { q: "Berat Benda: Batu lebih berat dari Kayu. Kayu lebih berat dari Kapas. Besi lebih berat dari Batu. Mana yang teringan kedua?", o: ["Batu", "Kayu", "Kapas", "Besi", "Tidak ada"], a: 1, h: "Urutan berat: Besi > Batu > Kayu > Kapas. Teringan kedua setelah kapas adalah kayu." },
+        { q: "Semua dokter spesialis memiliki izin praktek. Sebagian relawan kesehatan adalah dokter spesialis.", o: ["Semua relawan punya izin praktek.", "Sebagian relawan kesehatan punya izin praktek.", "Relawan tidak butuh izin.", "Dokter spesialis bukan relawan.", "Izin praktek hanya untuk relawan."], a: 1, h: "Relawan yang juga berprofesi sebagai dokter spesialis dipastikan memiliki izin praktek." },
+        { q: "Jika ombak besar, nelayan tidak melaut. Saat ini nelayan sedang melaut.", o: ["Ombak sedang kecil.", "Ombak tidak besar.", "Nelayan mencari ikan di sungai.", "Perahu nelayan sangat canggih.", "Hari ini cuaca cerah."], a: 1, h: "Fakta nelayan melaut menggugurkan premis ombak besar." },
+        { q: "Urutan Nilai: Nilai Eka > Fani. Nilai Gina < Fani. Nilai Hana > Eka. Siapa peringkat ketiga?", o: ["Eka", "Fani", "Gina", "Hana", "Tidak pasti"], a: 1, h: "Urutan nilai: Hana (1), Eka (2), Fani (3), Gina (4)." },
+        { q: "Tidak ada pahlawan yang mengkhianati negara. Sebagian tentara adalah pahlawan.", o: ["Semua tentara tidak khianat.", "Sebagian tentara tidak mengkhianati negara.", "Tentara pasti pahlawan.", "Pengkhianat adalah tentara.", "Negara aman karena tentara."], a: 1, h: "Bagian dari tentara yang merupakan pahlawan dijamin tidak akan mengkhianati negara." },
+        { q: "Setiap libur nasional kantor tutup. Hari ini hari Senin dan kantor tutup.", o: ["Hari ini pasti libur nasional.", "Hari Senin selalu libur.", "Kantor sedang renovasi.", "Hari ini mungkin libur nasional.", "Karyawan sedang mogok."], a: 3, h: "Tutupnya kantor bisa disebabkan libur nasional atau alasan lain, sehingga status libur nasional hanya bersifat kemungkinan." },
+        { q: "Posisi Duduk: G di sebelah kiri H. I di sebelah kanan H. J di antara G dan H. Siapa yang paling kanan?", o: ["G", "H", "I", "J", "Semua salah"], a: 2, h: "Formasi duduk: G - J - H - I. Posisi paling kanan diisi oleh I." },
+        { q: "Semua buah mengandung vitamin. Sebagian buah rasanya masam.", o: ["Hanya buah masam yang bervitamin.", "Sebagian yang rasanya masam mengandung vitamin.", "Buah masam tidak bervitamin.", "Vitamin hanya ada di buah.", "Semua masam adalah buah."], a: 1, h: "Setiap buah (termasuk yang masam) mengandung vitamin." },
+        { q: "Jika sinyal kuat, video lancar. Faktanya video terputus-putus.", o: ["Sinyal tidak kuat.", "Kuota habis.", "Server down.", "Hp rusak.", "Video sedang buffering."], a: 0, h: "Video tidak lancar membuktikan bahwa syarat sinyal kuat tidak terpenuhi." },
+        { q: "Lima Mobil Parkir: A di sebelah B. C di antara A dan D. E di ujung kiri dekat D. Jika B di ujung kanan, siapa di tengah?", o: ["A", "B", "C", "D", "E"], a: 2, h: "Urutan parkir: E - D - C - A - B. Mobil C berada tepat di tengah urutan lima mobil." },
+        { q: "Semua peserta rapat setuju dengan usulan. Pak Hendra hadir di rapat tersebut.", o: ["Pak Hendra tidak setuju.", "Pak Hendra pasti setuju.", "Rapat dibatalkan.", "Pak Hendra memimpin rapat.", "Pak Hendra diam saja."], a: 1, h: "Hendra adalah bagian dari peserta rapat, maka Hendra otomatis termasuk pihak yang setuju." },
+        { q: "Jika hujan turun, jemuran basah. Ternyata jemuran kering.", o: ["Hujan tidak turun.", "Hujan sangat deras.", "Jemuran di dalam rumah.", "Matahari sangat terik.", "Jemuran baru dicuci."], a: 0, h: "Kondisi jemuran yang kering meniadakan terjadinya hujan (Modus Tollens)." },
+        { q: "Urutan Pangkat: Kolonel > Letkol. Mayor < Letkol. Jenderal > Kolonel. Siapa terendah?", o: ["Kolonel", "Letkol", "Mayor", "Jenderal", "Semua sama"], a: 2, h: "Urutan pangkat: Jenderal > Kolonel > Letkol > Mayor. Mayor adalah yang terendah." },
+        { q: "Semua burung bertelur. Buaya bertelur.", o: ["Buaya adalah burung.", "Burung adalah buaya.", "Buaya dan burung sama jenis.", "Beberapa buaya bisa terbang.", "Tidak dapat disimpulkan hubungan keduanya."], a: 4, h: "Memiliki satu kesamaan ciri (bertelur) tidak menjadikan buaya sebagai bagian dari kategori burung." },
+        { q: "Jika lapar, orang makan. Jika makan, perut kenyang. Ternyata perut tidak kenyang.", o: ["Orang tersebut tidak makan.", "Orang tersebut tidak lapar.", "Makanan tidak enak.", "Porsi makan sedikit.", "Orang tersebut sedang puasa."], a: 1, h: "Perut tidak kenyang menunjukkan proses sebelumnya (makan/lapar) tidak terpenuhi secara sekuensial." },
+        { q: "Lima orang lari: Ani lebih cepat dari Budi. Cici lebih lambat dari Doni. Budi lebih cepat dari Doni. Siapa urutan kedua?", o: ["Ani", "Budi", "Cici", "Doni", "Eko"], a: 1, h: "Urutan lari: Ani (1) > Budi (2) > Doni (3) > Cici (4). Budi urutan kedua." },
+        { q: "Semua logam memuai jika dipanaskan. Besi adalah logam.", o: ["Besi memuai jika dipanaskan.", "Hanya besi yang memuai.", "Besi tidak memuai.", "Logam lain tidak memuai.", "Besi adalah logam unik."], a: 0, h: "Besi sebagai anggota kelompok logam mewarisi sifat memuai jika dipanaskan." },
+        { q: "Jika guru datang, kelas tenang. Faktanya kelas sangat ramai.", o: ["Guru tidak datang.", "Guru sedang marah.", "Siswa sedang bermain.", "Guru sudah pulang.", "Kepala sekolah datang."], a: 0, h: "Kelas ramai menandakan bahwa kondisi 'guru datang' tidak terpenuhi." },
+        { q: "Urutan Usia: P lebih tua dari Q. R lebih muda dari S. Q lebih tua dari S. Siapa tertua?", o: ["P", "Q", "R", "S", "Tidak ada"], a: 0, h: "Urutan usia: P > Q > S > R. Subjek P adalah yang tertua." },
+        { q: "Semua mawar berduri. Sebagian tanaman di taman adalah mawar.", o: ["Semua tanaman taman berduri.", "Sebagian tanaman taman berduri.", "Mawar tidak berduri.", "Hanya mawar yang di taman.", "Taman penuh duri."], a: 1, h: "Beberapa tanaman di taman (yang merupakan mawar) dipastikan memiliki duri." },
+        { q: "Jika rajin belajar, nilai bagus. Jika nilai bagus, masuk PTN. Faktanya tidak masuk PTN.", o: ["Tidak rajin belajar.", "Nilai tidak bagus.", "Kurang beruntung.", "Pilihan PTN salah.", "PTN sangat ketat."], a: 0, h: "Kegagalan masuk PTN merujuk pada ketidakberhasilan memenuhi syarat awal (rajin belajar) dalam logika ini." },
+        { q: "Tiga Toko: Toko A lebih murah dari B. Toko C lebih mahal dari B. Mana paling mahal?", o: ["A", "B", "C", "D", "Semua sama"], a: 2, h: "Urutan harga: Toko C (Termahal) > Toko B > Toko A." },
+        { q: "Semua hewan butuh air. Kucing butuh air.", o: ["Kucing adalah hewan.", "Hewan adalah kucing.", "Kucing bukan hewan.", "Air butuh kucing.", "Tidak dapat disimpulkan pasti."], a: 4, h: "Premis tidak menyatakan bahwa 'hanya' hewan yang butuh air, sehingga posisi kucing tidak bisa ditentukan secara otomatis dari premis ini saja." },
+        { q: "Jika saklar on, lampu nyala. Faktanya lampu mati.", o: ["Saklar off.", "Saklar on.", "Listrik padam.", "Lampu putus.", "Saklar rusak."], a: 0, h: "Lampu mati secara logis menyimpulkan saklar sedang dalam posisi off (Modus Tollens)." },
+        { q: "Urutan Kamar: Kamar 1 di depan 2. Kamar 3 di belakang 4. Kamar 2 di depan 4. Mana kamar paling depan?", o: ["1", "2", "3", "4", "Semua salah"], a: 0, h: "Urutan posisi: Kamar 1 -> Kamar 2 -> Kamar 4 -> Kamar 3." }
+    ];
+
+    function mulai() {
+        const p = document.getElementById('pass').value.trim().toLowerCase();
+        const n = document.getElementById('nama').value.trim();
+        if(p === "persona01" && n.length >= 2) {
+            document.getElementById('login-scr').style.display = 'none';
+            document.getElementById('quiz-scr').style.display = 'block';
+            update(); timer(3600);
+        } else if (n.length < 2) {
+            alert("Harap masukkan nama lengkap Anda!");
+        } else { 
+            alert("Password Salah! Gunakan password: persona01"); 
+        }
+    }
+
+    function update() {
+        const s = bankSilo[idx];
+        document.getElementById('q-body').innerHTML = `<b>SOAL NOMOR ${idx+1}</b><br><br>${s.q}`;
+        let h = "";
+        s.o.forEach((o, i) => { 
+            h += `<div class="opt ${ans[idx]===i?'active':''}" onclick="pilih(${i})">
+                    <b style="margin-right:15px;">${String.fromCharCode(65+i)}.</b> ${o}
+                  </div>`; 
+        });
+        document.getElementById('opts-area').innerHTML = h;
+        document.getElementById('btn-next').innerText = idx === 49 ? "SELESAI" : "LANJUTKAN";
+        nav();
+    }
+
+    function pilih(i) { 
+        ans[idx] = i; 
+        update(); 
+        setTimeout(() => { if(idx < 49) { idx++; update(); } }, 300); 
+    }
+
+    function arah(n) { 
+        if(n === 1 && idx === 49) { 
+            if(confirm("Apakah Anda yakin ingin menyelesaikan sesi ini?")) selesai(); 
+            return; 
+        } 
+        idx += n; 
+        if(idx < 0) idx = 0; 
+        update(); 
+    }
+
+    function nav() { 
+        let h = ""; 
+        bankSilo.forEach((_, i) => { 
+            h += `<div class="dot ${ans[i] !== undefined ? 'filled' : ''} ${i === idx ? 'active' : ''}" onclick="idx=${i};update()">${i+1}</div>`; 
+        }); 
+        document.getElementById('dots-area').innerHTML = h; 
+    }
+
+    function timer(s) { 
+        let clock = setInterval(() => { 
+            let m = Math.floor(s/60); 
+            let d = s%60; 
+            document.getElementById('clock').innerText = `${m}:${d < 10 ? '0' : ''}${d}`; 
+            if(s-- <= 0){ clearInterval(clock); selesai(); } 
+        }, 1000); 
+    }
+
+    function selesai() {
+        document.getElementById('quiz-scr').style.display = 'none';
+        document.getElementById('result-scr').style.display = 'block';
+        let b = 0, h = "";
+        bankSilo.forEach((s, i) => {
+            if(ans[i] === s.a) b++;
+            h += `<div class="teach-card">
+                    <b>${i+1}. ${s.q}</b><br><br>
+                    <span style="color:green;"><b>Kunci Jawaban: ${String.fromCharCode(65+s.a)}</b></span><br>
+                    <span>Jawaban Anda: <b>${ans[i] !== undefined ? String.fromCharCode(65+ans[i]) : '-'}</b></span><br><br>
+                    <div style="background:#fff; padding:10px; border-radius:5px; border:1px solid #ddd;">
+                        <b>Pembahasan:</b><br>${s.h}
+                    </div>
+                  </div>`;
+        });
+        document.getElementById('final-score').innerText = "SKOR: " + Math.round(b/50*100);
+        document.getElementById('info-peserta').innerHTML = `<b>Nama Peserta:</b> ${document.getElementById('nama').value.toUpperCase()}<br><b>Tanggal Selesai:</b> ${new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}`;
+        document.getElementById('list-bahas').innerHTML = h;
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>

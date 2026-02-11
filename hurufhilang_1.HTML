@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Comprehensive Assessment - Persona Research & Consulting</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root{--navy:#0b2340;--gold:#d4a017;--gray:#f1f5f9;--dark:#071130;--danger:#c0392b;--success:#27ae60;--blue:#2980b9}
+        body{margin:0;font-family:'Inter',sans-serif;background:#e2e8f0;display:flex;justify-content:center;padding:10px;color:var(--dark)}
+        .wrap{width:100%;max-width:980px;background:#fff;border-top:6px solid var(--navy);border-radius:8px;min-height:90vh;padding:25px;box-sizing:border-box;box-shadow:0 10px 30px rgba(0,0,0,0.1);position:relative;display:flex;flex-direction:column}
+        
+        header{border-bottom:2px solid var(--gray);padding-bottom:15px;margin-bottom:20px;display:flex;flex-direction:column;align-items:center}
+        .title-area h1{margin:0;font-size:24px;color:var(--navy);text-align:center;text-transform: uppercase;}
+        
+        #loginBox{text-align:center;padding:50px 0;flex-grow:1}
+        .login-card{display:inline-block;background:var(--gray);padding:35px;border-radius:12px;border:1px solid #cbd5e1}
+        input{display:block;width:260px;padding:12px;margin:10px auto;border:1px solid #cbd5e1;border-radius:6px;font-size:16px}
+        .btn-start{background:var(--navy);color:var(--gold);padding:12px 45px;border:none;border-radius:6px;font-weight:800;cursor:pointer;font-size:16px}
+        
+        /* TIMER TANPA KOTAK */
+        #topRow{display:none; flex-direction: column; align-items: center; margin-top: 15px;}
+        .timer-container{font-size: 14px; font-weight: 700; color: #64748b; margin-bottom: 0px; letter-spacing: 1px;}
+        .timer-box{font-size: 50px; font-weight: 900; color: #000; font-family: 'Courier New', monospace; padding: 0; background: none; border: none;}
+        #kolomInfo{font-weight: bold; color: var(--navy); font-size: 18px; margin-top: 5px; background: #e2e8f0; padding: 5px 30px; border-radius: 20px;}
+        
+        .timer-red { color: var(--danger) !important; }
+
+        #prepOverlay {
+            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(255,255,255,0.98); z-index: 1000;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+        #countdownText { font-size: 150px; font-weight: 900; color: var(--navy); }
+        #prepMsg { font-size: 24px; font-weight: bold; color: var(--navy); margin-bottom: 10px; }
+
+        #testArea{flex-grow:1}
+        .acuan-container{width:100%;max-width:520px;margin:0 auto 30px}
+        .acuan{width:100%;border-collapse:collapse;table-layout:fixed}
+        .acuan td{border:1px solid #cbd5e1;height:65px;text-align:center;font-size:36px;font-weight:900;background:#fff;color:var(--navy)}
+        .acuan td.label{background:var(--gray);font-size:18px;height:40px;color:#475569}
+        .soal-area{text-align:center;margin:40px 0}
+        .soal-text{font-size:65px;font-weight:900;letter-spacing:15px;background:#f8fafc;padding:25px 50px;border-radius:15px;display:inline-block;border:2px solid var(--gray)}
+        
+        .pilihan-container{display:flex;justify-content:center;gap:15px;margin-top:30px}
+        .pilihan-btn{width:75px;height:75px;font-size:32px;font-weight:bold;cursor:pointer;border:2px solid var(--navy);background:#fff;border-radius:12px;color:var(--navy);transition: all 0.1s;}
+        .pilihan-btn:active { transform: scale(0.85); background: var(--gold); color: white; border-color: var(--gold); }
+
+        #hasilArea{display:none; flex-grow:1}
+        table.hasil{width:100%;border-collapse:collapse;margin-top:25px}
+        table.hasil th, table.hasil td{border:1px solid #e2e8f0;padding:12px;text-align:center}
+        
+        .summary-cards{display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin:25px 0;}
+        .card-skor{background:#fff;padding:18px;border-radius:12px;text-align:center;border:1px solid #e2e8f0;}
+        .card-skor b { font-size: 11px; color: #64748b; display: block; margin-bottom: 8px; text-transform: uppercase;}
+        .val-skor { font-size: 32px; font-weight: 900; display: block; line-height: 1;}
+        .kat-text { font-size: 14px; font-weight: bold; margin-top: 8px; display: block; }
+        
+        .card-akhir { grid-column: span 2; background: var(--navy) !important; color: white !important; border: none;}
+        .card-akhir b { color: #94a3b8 !important; }
+        .card-akhir .val-skor { font-size: 45px !important; color: white !important; }
+
+        .permanent-footer { margin-top: auto; padding-top: 20px; border-top: 2px solid var(--gray); text-align: center; font-size: 13px; color: #475569; background: #fff; }
+        .permanent-footer b { color: var(--navy); font-size: 15px; }
+
+        .txt-biru{color:var(--blue)}
+        .txt-gold{color:var(--gold)}
+        .txt-merah{color:var(--danger)}
+        .txt-hijau{color:var(--success)}
+        .tms-teks { color: var(--danger); font-style: italic; font-weight: 800; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div id="prepOverlay">
+            <div id="prepMsg">BERSIAP...</div>
+            <div id="countdownText">3</div>
+        </div>
+
+        <header>
+            <div class="title-area"><h1>Tes Kecermatan (Huruf Hilang)</h1></div>
+            <div id="topRow">
+                <div class="timer-container">SISA WAKTU</div>
+                <div class="timer-box" id="timer">00:00:60</div>
+                <div id="kolomInfo">KOLOM: 1 / 10</div>
+            </div>
+        </header>
+
+        <div id="loginBox">
+            <div class="login-card">
+                <h3 style="margin-top:0">LOGIN PESERTA</h3>
+                <input id="username" placeholder="Nama Lengkap" />
+                <input id="password" type="password" placeholder="Password" />
+                <button class="btn-start" onclick="startLogin()">MULAI SEKARANG</button>
+            </div>
+        </div>
+
+        <div id="testArea" style="display:none">
+            <div class="acuan-container"><table class="acuan" id="acuanTable"></table></div>
+            <div class="soal-area"><div id="soal" class="soal-text">---</div></div>
+            <div id="pilihan" class="pilihan-container"></div>
+        </div>
+
+        <div id="hasilArea">
+            <h2 style="text-align:center; margin-bottom: 5px;">HASIL AKHIR EVALUASI</h2>
+            <div id="namaHasil" style="text-align:center;font-weight:900;font-size:22px;color:var(--navy);margin-bottom:5px"></div>
+            <div id="waktuHasil" style="text-align:center;font-size:14px;color:#64748b;margin-bottom:25px"></div>
+            
+            <div id="summaryBox" class="summary-cards"></div>
+            
+            <table class="hasil">
+                <thead><tr style="background:#f8fafc"><th>KOLOM</th><th>TERJAWAB</th><th>BENAR</th><th>SALAH</th><th>SELISIH</th></tr></thead>
+                <tbody id="tbodyHasil"></tbody>
+            </table>
+            <div style="max-width:800px;margin:40px auto"><canvas id="chartPauli"></canvas></div>
+        </div>
+
+        <footer class="permanent-footer">
+            <b>Persona Research & Consulting</b><br>
+            © 2026 All Rights Reserved | 📞 0877 4251 5786
+        </footer>
+    </div>
+
+<script>
+    const BANK = ["QZMPA","LXRDT","VNSHK","EYCJW","OBGFI","UQWRA","TKZEM","PSYHD","CFLVN","JIGXB"];
+    let currentIdx = 0, timerLeft = 60, interval = null, results = [], username = "", startTimeStamp = "";
+
+    // LOGIKA EXPIRED DATE: 1 Juli 2026
+    const EXPIRE_DATE = new Date('2026-07-01T23:59:59');
+
+    function checkIsExpired() {
+        const today = new Date();
+        if (today > EXPIRE_DATE) {
+            alert("Masa berlaku soal simulasi ini telah habis (Expired: 1 Juli 2026). Silakan hubungi admin Persona Research & Consulting.");
+            return true;
+        }
+        return false;
+    }
+
+    function formatTimeDisplay(seconds) {
+        return `00:00:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function startLogin() {
+        // Cek Expired sebelum mulai
+        if (checkIsExpired()) return;
+
+        const userIn = document.getElementById('username').value;
+        const passIn = document.getElementById('password').value;
+        if(!userIn || passIn !== 'persona01') return alert('Akses Ditolak');
+        username = userIn;
+        const d = new Date();
+        startTimeStamp = d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + " | " + d.toLocaleTimeString('id-ID');
+        document.getElementById('loginBox').style.display = 'none';
+        triggerCountdown("MULAI TES");
+    }
+
+    function triggerCountdown(msg) {
+        const overlay = document.getElementById('prepOverlay');
+        const countText = document.getElementById('countdownText');
+        const prepMsg = document.getElementById('prepMsg');
+        document.getElementById('testArea').style.display = 'none';
+        document.getElementById('topRow').style.display = 'none';
+        overlay.style.display = 'flex';
+        prepMsg.textContent = msg;
+        let count = 3;
+        countText.textContent = count;
+        let t = setInterval(() => {
+            count--;
+            if(count > 0) countText.textContent = count;
+            else { clearInterval(t); overlay.style.display = 'none'; startColumn(); }
+        }, 1000);
+    }
+
+    function startColumn() {
+        timerLeft = 60;
+        document.getElementById('topRow').style.display = 'flex';
+        document.getElementById('testArea').style.display = 'block';
+        document.getElementById('kolomInfo').textContent = `KOLOM: ${currentIdx + 1} / 10`;
+        const timerEl = document.getElementById('timer');
+        timerEl.classList.remove('timer-red');
+        timerEl.textContent = formatTimeDisplay(60);
+        if(!results[currentIdx]) results.push({t:0, b:0, s:0});
+        renderAcuan(BANK[currentIdx]);
+        nextSoal();
+        interval = setInterval(() => {
+            timerLeft--;
+            timerEl.textContent = formatTimeDisplay(timerLeft);
+            if(timerLeft <= 10) timerEl.classList.add('timer-red');
+            if(timerLeft <= 0) {
+                clearInterval(interval);
+                currentIdx++;
+                if(currentIdx < 10) triggerCountdown("PERSIAPAN KOLOM BERIKUTNYA"); else showFinal();
+            }
+        }, 1000);
+    }
+
+    function renderAcuan(str) {
+        let h1 = '<tr>', h2 = '<tr>';
+        [...str].forEach((c, i) => {
+            h1 += `<td>${c}</td>`;
+            h2 += `<td class="label">${String.fromCharCode(65+i)}</td>`;
+        });
+        document.getElementById('acuanTable').innerHTML = h1+'</tr>'+h2+'</tr>';
+    }
+
+    function nextSoal() {
+        const pool = [...BANK[currentIdx]];
+        const missingIdx = Math.floor(Math.random()*5);
+        const correctChar = String.fromCharCode(65+missingIdx);
+        const displayChars = pool.filter((_,i) => i !== missingIdx).sort(()=>Math.random()-0.5);
+        document.getElementById('soal').textContent = displayChars.join(' ');
+        const cont = document.getElementById('pilihan');
+        cont.innerHTML = '';
+        ['A','B','C','D','E'].forEach(l => {
+            const btn = document.createElement('button');
+            btn.className = 'pilihan-btn'; btn.textContent = l;
+            btn.onclick = () => {
+                results[currentIdx].t++;
+                if(l === correctChar) results[currentIdx].b++; else results[currentIdx].s++;
+                nextSoal();
+            };
+            cont.appendChild(btn);
+        });
+    }
+
+    function getKatKecepatan(val) {
+        if(val >= 16) return "Baik";
+        if(val >= 12) return "Cukup";
+        return "Kurang";
+    }
+
+    function getKatKetelitian(val) {
+        if(val <= 5) return "Baik";
+        if(val <= 15) return "Cukup"; 
+        return "Kurang";
+    }
+
+    function getKatKestabilan(val) {
+        if(val <= 5) return "Baik";
+        if(val === 6) return "Cukup";
+        return "Kurang";
+    }
+
+    function showFinal() {
+        document.getElementById('testArea').style.display = 'none';
+        document.getElementById('topRow').style.display = 'none';
+        document.getElementById('hasilArea').style.display = 'block';
+        document.getElementById('namaHasil').textContent = username.toUpperCase();
+        document.getElementById('waktuHasil').textContent = startTimeStamp;
+
+        const totals = results.map(r => r.t);
+        const totalSalah = results.reduce((a, b) => a + b.s, 0);
+        const minVal = Math.min(...totals);
+        const maxVal = Math.max(...totals);
+        const rentang = maxVal - minVal;
+        const rata2 = totals.reduce((a,b) => a+b, 0) / 10;
+        let skorUtama = Math.min(Math.round((rata2 / 25) * 100), 100); 
+        
+        let statusLulus = "MEMENUHI SYARAT";
+        if(getKatKecepatan(minVal) === "Kurang" || getKatKestabilan(rentang) === "Kurang") {
+            skorUtama = Math.min(skorUtama, 55); 
+            statusLulus = "TMS (Kurang)";
+        }
+
+        const nilaiAkhirKali = (skorUtama * 0.4).toFixed(2);
+        let html = '';
+        results.forEach((r, i) => {
+            let sel = i === 0 ? '-' : r.t - results[i-1].t;
+            html += `<tr><td>${i+1}</td><td>${r.t}</td><td>${r.b}</td><td>${r.s}</td><td>${sel}</td></tr>`;
+        });
+        document.getElementById('tbodyHasil').innerHTML = html;
+
+        document.getElementById('summaryBox').innerHTML = `
+            <div class="card-skor"><b>KECEPATAN (Min)</b><span class="val-skor txt-biru">${minVal}</span><span class="kat-text">${getKatKecepatan(minVal)}</span></div>
+            <div class="card-skor"><b>KETELITIAN (Salah)</b><span class="val-skor txt-hijau">${totalSalah}</span><span class="kat-text">${getKatKetelitian(totalSalah)}</span></div>
+            <div class="card-skor"><b>KESTABILAN (Range)</b><span class="val-skor txt-gold">${rentang}</span><span class="kat-text">${getKatKestabilan(rentang)}</span></div>
+            <div class="card-skor"><b>SKOR UTAMA</b><span class="val-skor">${skorUtama}</span><span class="kat-text ${skorUtama < 60 ? 'tms-teks' : 'txt-hijau'}">${statusLulus}</span></div>
+            <div class="card-skor card-akhir"><b>NILAI AKHIR (x0.4)</b><span class="val-skor">${nilaiAkhirKali}</span></div>
+        `;
+
+        new Chart(document.getElementById('chartPauli'), {
+            type: 'line',
+            data: {
+                labels: [1,2,3,4,5,6,7,8,9,10],
+                datasets: [{ 
+                    label: 'Grafik Kecepatan per Kolom', 
+                    data: totals, 
+                    borderColor: '#0b2340', 
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#d4a017',
+                    tension: 0.1, 
+                    fill: true, 
+                    backgroundColor: 'rgba(11, 35, 64, 0.05)' 
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true } } }
+        });
+    }
+</script>
+</body>
+</html>
